@@ -2,6 +2,13 @@ import express from "express";
 import { createServer as createViteServer } from "vite";
 import path from "path";
 import { fileURLToPath } from "url";
+<<<<<<< HEAD
+=======
+import dotenv from "dotenv";
+import fs from "fs";
+
+dotenv.config();
+>>>>>>> 3cfd4171069da73359712abaec2aa81ec1509b1d
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -12,7 +19,11 @@ async function startServer() {
 
   app.use(express.json());
 
+<<<<<<< HEAD
   // Proxy endpoint to fetch ChatGPT shared links or any URL
+=======
+  // API routes FIRST
+>>>>>>> 3cfd4171069da73359712abaec2aa81ec1509b1d
   app.get("/api/proxy-fetch", async (req, res) => {
     const targetUrl = req.query.url as string;
     if (!targetUrl) {
@@ -41,10 +52,34 @@ async function startServer() {
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
+<<<<<<< HEAD
       server: { middlewareMode: true },
       appType: "spa",
     });
     app.use(vite.middlewares);
+=======
+      server: { 
+        middlewareMode: true,
+      },
+      appType: "spa",
+    });
+    
+    app.use(vite.middlewares);
+
+    app.get("*", async (req, res, next) => {
+      // Skip API and Vite-handled assets
+      if (req.originalUrl.startsWith('/api') || req.originalUrl.includes('.')) return next();
+      
+      try {
+        let template = fs.readFileSync(path.resolve(__dirname, "index.html"), "utf-8");
+        template = await vite.transformIndexHtml(req.originalUrl, template);
+        res.status(200).set({ "Content-Type": "text/html" }).end(template);
+      } catch (e) {
+        vite.ssrFixStacktrace(e as Error);
+        next(e);
+      }
+    });
+>>>>>>> 3cfd4171069da73359712abaec2aa81ec1509b1d
   } else {
     // Serve static files in production
     app.use(express.static(path.join(__dirname, "dist")));
