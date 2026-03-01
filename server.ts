@@ -49,17 +49,19 @@ async function startServer() {
         middlewareMode: true,
       },
       appType: "spa",
+      base: './'
     });
     
-    // Use vite's connect instance as middleware
     app.use(vite.middlewares);
 
-    // Serve transformed index.html
     app.get("*", async (req, res, next) => {
-      const url = req.originalUrl;
+      // Skip API routes
+      if (req.originalUrl.startsWith('/api')) return next();
+      
       try {
         let template = fs.readFileSync(path.resolve(__dirname, "index.html"), "utf-8");
-        template = await vite.transformIndexHtml(url, template);
+        // Transform the HTML to inject Vite client and resolve paths
+        template = await vite.transformIndexHtml(req.originalUrl, template);
         res.status(200).set({ "Content-Type": "text/html" }).end(template);
       } catch (e) {
         vite.ssrFixStacktrace(e as Error);
