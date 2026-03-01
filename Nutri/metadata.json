@@ -1,0 +1,5 @@
+{
+  "name": "NutriGPT - Calorie Tracker",
+  "description": "Track your calories by importing data from ChatGPT shared links or using voice commands. Set goals, view remaining calories, and get AI-powered food suggestions.",
+  "requestFramePermissions": ["microphone"]
+}
