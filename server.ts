@@ -3,6 +3,7 @@ import { createServer as createViteServer } from "vite";
 import path from "path";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
+import fs from "fs";
 
 dotenv.config();
 
@@ -15,7 +16,7 @@ async function startServer() {
 
   app.use(express.json());
 
-  // Proxy endpoint to fetch ChatGPT shared links or any URL
+  // API routes FIRST
   app.get("/api/proxy-fetch", async (req, res) => {
     const targetUrl = req.query.url as string;
     if (!targetUrl) {
@@ -46,12 +47,25 @@ async function startServer() {
     const vite = await createViteServer({
       server: { 
         middlewareMode: true,
-        host: '0.0.0.0',
-        port: 3000
       },
       appType: "spa",
     });
+    
+    // Use vite's connect instance as middleware
     app.use(vite.middlewares);
+
+    // Serve transformed index.html
+    app.get("*", async (req, res, next) => {
+      const url = req.originalUrl;
+      try {
+        let template = fs.readFileSync(path.resolve(__dirname, "index.html"), "utf-8");
+        template = await vite.transformIndexHtml(url, template);
+        res.status(200).set({ "Content-Type": "text/html" }).end(template);
+      } catch (e) {
+        vite.ssrFixStacktrace(e as Error);
+        next(e);
+      }
+    });
   } else {
     // Serve static files in production
     app.use(express.static(path.join(__dirname, "dist")));
