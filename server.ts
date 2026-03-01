@@ -49,18 +49,16 @@ async function startServer() {
         middlewareMode: true,
       },
       appType: "spa",
-      base: './'
     });
     
     app.use(vite.middlewares);
 
     app.get("*", async (req, res, next) => {
-      // Skip API routes
-      if (req.originalUrl.startsWith('/api')) return next();
+      // Skip API and Vite-handled assets
+      if (req.originalUrl.startsWith('/api') || req.originalUrl.includes('.')) return next();
       
       try {
         let template = fs.readFileSync(path.resolve(__dirname, "index.html"), "utf-8");
-        // Transform the HTML to inject Vite client and resolve paths
         template = await vite.transformIndexHtml(req.originalUrl, template);
         res.status(200).set({ "Content-Type": "text/html" }).end(template);
       } catch (e) {
