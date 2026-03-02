@@ -270,15 +270,15 @@ export default function App() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full">
           {/* Daily Goal Card */}
           <div className="p-6 rounded-3xl shadow-sm border backdrop-blur-sm flex items-center gap-4 transition-all bg-emerald-50/90 border-emerald-100">
-            <div className="p-3 rounded-2xl text-emerald-600 bg-white shadow-sm shadow-emerald-100">
+            <div className="p-3 rounded-2xl text-emerald-700 bg-white shadow-sm shadow-emerald-100">
               <Target className="w-5 h-5" />
             </div>
             <div className="flex-1">
               <div className="flex items-center justify-between mb-1">
-                <p className="text-xs font-bold uppercase tracking-wider text-emerald-500">Meta Diária</p>
+                <p className="text-xs font-bold uppercase tracking-wider text-emerald-700">Meta Diária</p>
                 <button 
                   onClick={resetGoal}
-                  className="text-[10px] font-bold uppercase text-emerald-400 hover:text-emerald-600 transition-colors"
+                  className="text-[10px] font-bold uppercase text-emerald-600 hover:text-emerald-800 transition-colors"
                 >
                   Reset
                 </button>
@@ -308,7 +308,7 @@ export default function App() {
             label={isExceeded ? "Ultrapassado" : "Restante"} 
             value={isExceeded ? exceededAmount : remaining} 
             unit="kcal" 
-            icon={<Target className="w-5 h-5 text-emerald-500" />}
+            icon={<Target className="w-5 h-5 text-emerald-700" />}
             color={isExceeded ? "red" : "emerald"}
           />
         </div>
@@ -343,9 +343,10 @@ export default function App() {
               </h2>
               <button 
                 onClick={clearHistory}
-                className="text-xs font-bold uppercase tracking-wider text-emerald-400 hover:text-red-500 transition-colors"
+                className="text-emerald-600 hover:text-red-500 transition-colors p-1"
+                title="Limpar Histórico"
               >
-                Limpar Histórico
+                <Trash2 className="w-4 h-4" />
               </button>
             </div>
             <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
@@ -358,12 +359,12 @@ export default function App() {
                 )}>
                   <span className={cn(
                     "text-[10px] uppercase font-bold mb-1",
-                    val > 0 ? "text-red-400" : "text-emerald-400"
+                    val > 0 ? "text-red-400" : "text-emerald-600"
                   )}>Dia {i + 1}</span>
                   <span className={cn("font-mono font-bold text-lg", val > 0 ? "text-red-600" : "text-black")}>
                     {val}
                   </span>
-                  <span className={cn("text-[8px] font-bold uppercase", val > 0 ? "text-red-300" : "text-emerald-300")}>kcal</span>
+                  <span className={cn("text-[8px] font-bold uppercase", val > 0 ? "text-red-300" : "text-emerald-500")}>kcal</span>
                 </div>
               ))}
             </div>
@@ -376,14 +377,14 @@ export default function App() {
             <section className="bg-emerald-50/80 backdrop-blur-sm p-6 rounded-3xl shadow-sm border border-emerald-100 space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Mic className="w-5 h-5 text-emerald-600" />
+                  <Mic className="w-5 h-5 text-emerald-700" />
                   <h2 className="font-semibold text-black">Adicionar por Voz</h2>
                 </div>
                 {isRecording && (
                   <motion.div 
                     animate={{ opacity: [0, 1, 0] }}
                     transition={{ repeat: Infinity, duration: 1.5 }}
-                    className="flex items-center gap-2 text-emerald-600 text-xs font-bold uppercase"
+                    className="flex items-center gap-2 text-emerald-700 text-xs font-bold uppercase"
                   >
                     <div className="w-2 h-2 rounded-full bg-emerald-500" />
                     Gravando...
@@ -398,7 +399,7 @@ export default function App() {
                   className={cn(
                     "w-20 h-20 rounded-full flex items-center justify-center transition-all shadow-lg",
                     isRecording 
-                      ? "bg-emerald-600 hover:bg-emerald-700 scale-110" 
+                      ? "bg-emerald-700 hover:bg-emerald-800 scale-110" 
                       : "bg-emerald-800 hover:bg-emerald-900"
                   )}
                 >
@@ -409,13 +410,13 @@ export default function App() {
                   )}
                 </button>
                 <div className="text-center space-y-1">
-                  <p className="text-sm text-emerald-700 max-w-xs">
+                  <p className="text-sm text-emerald-800 max-w-xs">
                     {isRecording 
                       ? "Clique para parar e processar" 
                       : "Clique no microfone e diga o que você comeu"}
                   </p>
                   {voiceStatus && (
-                    <p className="text-xs font-medium text-emerald-600 animate-pulse">
+                    <p className="text-xs font-medium text-emerald-700 animate-pulse">
                       {voiceStatus}
                     </p>
                   )}
@@ -427,15 +428,16 @@ export default function App() {
             <section className="bg-emerald-50/80 backdrop-blur-sm p-6 rounded-3xl shadow-sm border border-emerald-100 space-y-4">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  <LinkIcon className="w-5 h-5 text-emerald-600" />
+                  <LinkIcon className="w-5 h-5 text-emerald-700" />
                   <h2 className="font-semibold text-black">Importar do ChatGPT</h2>
                 </div>
                 {chatGptUrl && (
                   <button 
                     onClick={() => setChatGptUrl('')}
-                    className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 hover:text-red-500 transition-colors"
+                    className="text-emerald-600 hover:text-red-500 transition-colors p-1"
+                    title="Limpar Link"
                   >
-                    Limpar Link
+                    <Trash2 className="w-4 h-4" />
                   </button>
                 )}
               </div>
@@ -446,12 +448,12 @@ export default function App() {
                     placeholder="Cole o link de compartilhamento..."
                     value={chatGptUrl}
                     onChange={(e) => setChatGptUrl(e.target.value)}
-                    className="w-full bg-white/50 border border-emerald-200 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all placeholder:text-emerald-300"
+                    className="w-full bg-white/50 border border-emerald-200 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all placeholder:text-emerald-500"
                   />
                   {chatGptUrl && (
                     <button 
                       onClick={() => setChatGptUrl('')}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-400 hover:text-emerald-600"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-600 hover:text-emerald-800"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -472,15 +474,16 @@ export default function App() {
             <section className="bg-emerald-50/60 backdrop-blur-sm p-6 rounded-3xl shadow-sm border border-emerald-100 space-y-4">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  <Search className="w-5 h-5 text-emerald-500" />
+                  <Search className="w-5 h-5 text-emerald-700" />
                   <h2 className="font-semibold text-black">Colar Texto</h2>
                 </div>
                 {pastedText && (
                   <button 
                     onClick={() => setPastedText('')}
-                    className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 hover:text-red-500 transition-colors"
+                    className="text-emerald-600 hover:text-red-500 transition-colors p-1"
+                    title="Limpar Texto"
                   >
-                    Limpar Texto
+                    <Trash2 className="w-4 h-4" />
                   </button>
                 )}
               </div>
@@ -489,7 +492,7 @@ export default function App() {
                   placeholder="Cole o texto da conversa aqui para extrair alimentos..."
                   value={pastedText}
                   onChange={(e) => setPastedText(e.target.value)}
-                  className="w-full h-24 bg-white/50 border border-emerald-200 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all text-sm resize-none placeholder:text-emerald-300"
+                  className="w-full h-24 bg-white/50 border border-emerald-200 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all text-sm resize-none placeholder:text-emerald-500"
                 />
                 <div className="flex justify-end">
                   <button 
@@ -508,11 +511,11 @@ export default function App() {
             <section className="bg-emerald-50/50 backdrop-blur-sm rounded-3xl shadow-sm border border-emerald-100 overflow-hidden">
               <div className="p-6 border-b border-emerald-100 flex items-center justify-between">
                 <h2 className="font-semibold flex items-center gap-2 text-black">
-                  <Utensils className="w-5 h-5 text-emerald-500" />
+                  <Utensils className="w-5 h-5 text-emerald-700" />
                   Alimentos Adicionados
                 </h2>
                 <div className="flex items-center gap-3">
-                  <span className="text-xs font-mono bg-white/80 px-2 py-1 rounded-lg text-emerald-600 border border-emerald-100">
+                  <span className="text-xs font-mono bg-white/80 px-2 py-1 rounded-lg text-emerald-700 border border-emerald-100">
                     {foods.length} itens
                   </span>
                   {lastAddedCount > 0 && (
@@ -532,7 +535,6 @@ export default function App() {
                       className="text-xs font-bold uppercase tracking-wider text-red-500 hover:text-red-600 transition-colors flex items-center gap-1 cursor-pointer"
                     >
                       <Trash2 className="w-3 h-3" />
-                      Limpar
                     </button>
                   )}
                 </div>
@@ -541,7 +543,7 @@ export default function App() {
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="bg-emerald-100/30 text-[10px] uppercase tracking-wider font-bold text-emerald-600">
+                    <tr className="bg-emerald-100/30 text-[10px] uppercase tracking-wider font-bold text-emerald-700">
                       <th className="px-6 py-3">Alimento</th>
                       <th className="px-6 py-3">Quantidade</th>
                       <th className="px-6 py-3 text-right">Calorias</th>
@@ -634,9 +636,9 @@ function StatCard({ label, value, unit, icon, color }: {
     },
     emerald: {
       card: "bg-emerald-50/90 border-emerald-100",
-      icon: "text-emerald-600 bg-white shadow-sm shadow-emerald-100",
+      icon: "text-emerald-700 bg-white shadow-sm shadow-emerald-100",
       text: "text-black",
-      label: "text-emerald-500"
+      label: "text-emerald-700"
     },
     red: {
       card: "bg-red-50/90 border-red-100",
