@@ -249,40 +249,47 @@ export default function App() {
       <div className="relative z-10 p-4 md:p-8">
         <div className="max-w-4xl mx-auto space-y-8">
         {/* Header */}
-        <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <header className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-zinc-900 flex items-center gap-2">
+            <h1 className="text-3xl font-bold tracking-tight text-black flex items-center gap-2">
               <Utensils className="w-8 h-8 text-emerald-600" />
               NutriGPT
             </h1>
-            <p className="text-zinc-500">Seu contador de calorias inteligente</p>
-          </div>
-          
-          <div className="flex items-center gap-4 bg-emerald-50/80 backdrop-blur-sm p-2 rounded-2xl shadow-sm border border-emerald-100">
-            <div className="flex items-center gap-2 px-3 border-r border-emerald-100">
-              <Target className="w-5 h-5 text-emerald-500" />
-              <div className="flex flex-col">
-                <span className="text-[10px] uppercase font-bold text-emerald-500 tracking-wider">Meta Diária</span>
-                <input 
-                  type="number" 
-                  value={goal} 
-                  onChange={(e) => setGoal(parseInt(e.target.value) || 0)}
-                  className="w-20 font-mono font-medium focus:outline-none text-lg bg-transparent text-emerald-900"
-                />
-              </div>
-            </div>
-            <button 
-              onClick={resetGoal}
-              className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-emerald-400 hover:text-emerald-600 transition-colors"
-              title="Resetar meta para 1500"
-            >
-              Resetar
-            </button>
+            <p className="text-zinc-600">Seu contador de calorias inteligente</p>
           </div>
         </header>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto w-full">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full">
+          {/* Daily Goal Card */}
+          <div className="p-6 rounded-3xl shadow-sm border backdrop-blur-sm flex items-center gap-4 transition-all bg-emerald-50/90 border-emerald-100">
+            <div className="p-3 rounded-2xl text-emerald-600 bg-white shadow-sm shadow-emerald-100">
+              <Target className="w-5 h-5" />
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center justify-between mb-1">
+                <p className="text-xs font-bold uppercase tracking-wider text-emerald-500">Meta Diária</p>
+                <button 
+                  onClick={resetGoal}
+                  className="text-[10px] font-bold uppercase text-emerald-400 hover:text-emerald-600 transition-colors"
+                >
+                  Reset
+                </button>
+              </div>
+              <div className="flex items-baseline gap-1">
+                <input 
+                  type="number" 
+                  inputMode="numeric"
+                  step="50"
+                  value={goal} 
+                  onChange={(e) => setGoal(parseInt(e.target.value) || 0)}
+                  className="w-full font-mono font-bold focus:outline-none text-2xl bg-transparent text-black"
+                />
+                <span className="text-sm font-normal opacity-60 text-black">kcal</span>
+              </div>
+            </div>
+          </div>
+
           <StatCard 
             label="Consumido" 
             value={totalConsumed} 
@@ -346,7 +353,7 @@ export default function App() {
                     "text-[10px] uppercase font-bold mb-1",
                     val > 0 ? "text-red-400" : "text-emerald-400"
                   )}>Dia {i + 1}</span>
-                  <span className={cn("font-mono font-bold text-lg", val > 0 ? "text-red-600" : "text-emerald-900")}>
+                  <span className={cn("font-mono font-bold text-lg", val > 0 ? "text-red-600" : "text-black")}>
                     {val}
                   </span>
                   <span className={cn("text-[8px] font-bold uppercase", val > 0 ? "text-red-300" : "text-emerald-300")}>kcal</span>
@@ -363,7 +370,7 @@ export default function App() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Mic className="w-5 h-5 text-emerald-600" />
-                  <h2 className="font-semibold text-emerald-900">Adicionar por Voz</h2>
+                  <h2 className="font-semibold text-black">Adicionar por Voz</h2>
                 </div>
                 {isRecording && (
                   <motion.div 
@@ -414,7 +421,7 @@ export default function App() {
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
                   <LinkIcon className="w-5 h-5 text-emerald-600" />
-                  <h2 className="font-semibold text-emerald-900">Importar do ChatGPT</h2>
+                  <h2 className="font-semibold text-black">Importar do ChatGPT</h2>
                 </div>
                 {chatGptUrl && (
                   <button 
@@ -459,7 +466,7 @@ export default function App() {
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
                   <Search className="w-5 h-5 text-emerald-500" />
-                  <h2 className="font-semibold text-emerald-800">Colar Texto</h2>
+                  <h2 className="font-semibold text-black">Colar Texto</h2>
                 </div>
                 {pastedText && (
                   <button 
@@ -493,7 +500,7 @@ export default function App() {
             {/* Food List */}
             <section className="bg-emerald-50/50 backdrop-blur-sm rounded-3xl shadow-sm border border-emerald-100 overflow-hidden">
               <div className="p-6 border-b border-emerald-100 flex items-center justify-between">
-                <h2 className="font-semibold flex items-center gap-2 text-emerald-900">
+                <h2 className="font-semibold flex items-center gap-2 text-black">
                   <Utensils className="w-5 h-5 text-emerald-500" />
                   Alimentos Adicionados
                 </h2>
@@ -545,9 +552,9 @@ export default function App() {
                           exit={{ opacity: 0, x: -20 }}
                           className="group hover:bg-emerald-100/20 transition-colors"
                         >
-                          <td className="px-6 py-4 font-medium text-zinc-900">{food.name}</td>
-                          <td className="px-6 py-4 text-zinc-500 text-sm">{food.amount || '-'}</td>
-                          <td className="px-6 py-4 text-right font-mono font-medium text-zinc-700">
+                          <td className="px-6 py-4 font-medium text-black">{food.name}</td>
+                          <td className="px-6 py-4 text-black text-sm">{food.amount || '-'}</td>
+                          <td className="px-6 py-4 text-right font-mono font-medium text-black">
                             {food.calories} <span className="text-[10px] text-zinc-400">kcal</span>
                           </td>
                           <td className="px-6 py-4 text-right">
@@ -583,6 +590,7 @@ export default function App() {
                 />
                 <input 
                   type="number" 
+                  inputMode="numeric"
                   placeholder="kcal"
                   value={manualFood.calories}
                   onChange={(e) => setManualFood({ ...manualFood, calories: e.target.value })}
@@ -612,21 +620,21 @@ function StatCard({ label, value, unit, icon, color }: {
 }) {
   const colorClasses = {
     orange: {
-      card: "bg-green-50/90 border-green-100",
-      icon: "text-green-600 bg-white shadow-sm shadow-green-100",
-      text: "text-green-900",
-      label: "text-green-500"
+      card: "bg-orange-50/90 border-orange-100",
+      icon: "text-orange-600 bg-white shadow-sm shadow-orange-100",
+      text: "text-orange-950",
+      label: "text-orange-500"
     },
     emerald: {
       card: "bg-emerald-50/90 border-emerald-100",
       icon: "text-emerald-600 bg-white shadow-sm shadow-emerald-100",
-      text: "text-emerald-900",
+      text: "text-black",
       label: "text-emerald-500"
     },
     red: {
       card: "bg-red-50/90 border-red-100",
       icon: "text-red-600 bg-white shadow-sm shadow-red-100",
-      text: "text-red-900",
+      text: "text-red-950",
       label: "text-red-500"
     }
   };
