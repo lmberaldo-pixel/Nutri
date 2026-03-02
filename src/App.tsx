@@ -98,6 +98,13 @@ export default function App() {
 
   const handleImportUrl = async () => {
     if (!chatGptUrl) return;
+    
+    // Check if we are on GitHub Pages (which doesn't support the proxy API)
+    if (window.location.hostname.includes('github.io')) {
+      alert("A importação direta por link não é suportada no GitHub Pages por limitações técnicas. \n\nPor favor, copie o texto da conversa e use a opção 'Colar Texto' abaixo.");
+      return;
+    }
+
     setIsLoading(true);
     try {
       const response = await fetch(`/api/proxy-fetch?url=${encodeURIComponent(chatGptUrl)}`);
