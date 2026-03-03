@@ -15,7 +15,7 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { extractFoodFromText, searchFoodCalories, transcribeAudio, FoodItem } from './services/geminiService';
+import { extractFoodFromText, extractFoodFromUrl, searchFoodCalories, transcribeAudio, FoodItem } from './services/geminiService';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -99,33 +99,19 @@ export default function App() {
   const handleImportUrl = async () => {
     if (!chatGptUrl) return;
     
-    // Check if we are on GitHub Pages (which doesn't support the proxy API)
-    if (window.location.hostname.includes('github.io')) {
-      alert("A importação direta por link não é suportada no GitHub Pages por limitações técnicas. \n\nPor favor, copie o texto da conversa e use a opção 'Colar Texto' abaixo.");
-      return;
-    }
-
     setIsLoading(true);
     try {
-      const response = await fetch(`/api/proxy-fetch?url=${encodeURIComponent(chatGptUrl)}`);
-      if (response.ok) {
-        const data = await response.json();
-        const text = data.content;
-        const extracted = await extractFoodFromText(text);
-        if (extracted.length > 0) {
-          setFoods([...foods, ...extracted]);
-          setLastAddedCount(extracted.length);
-          setChatGptUrl('');
-        } else {
-          alert("Não foram encontrados alimentos no conteúdo do link.");
-        }
+      const extracted = await extractFoodFromUrl(chatGptUrl);
+      if (extracted.length > 0) {
+        setFoods([...foods, ...extracted]);
+        setLastAddedCount(extracted.length);
+        setChatGptUrl('');
       } else {
-        const errorData = await response.json();
-        alert(`Erro ao buscar o link: ${errorData.error || "Tente copiar e colar o texto manualmente."}`);
+        alert("Não foram encontrados alimentos no conteúdo do link. Verifique se o link é público e contém uma conversa do ChatGPT.");
       }
     } catch (error) {
       console.error(error);
-      alert("Erro de conexão ao tentar buscar o link.");
+      alert("Erro ao tentar processar o link. Tente copiar e colar o texto manualmente.");
     } finally {
       setIsLoading(false);
     }

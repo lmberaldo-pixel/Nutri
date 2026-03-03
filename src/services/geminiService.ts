@@ -37,6 +37,36 @@ export async function extractFoodFromText(text: string): Promise<FoodItem[]> {
   }
 }
 
+export async function extractFoodFromUrl(url: string): Promise<FoodItem[]> {
+  const response = await ai.models.generateContent({
+    model: "gemini-3-flash-preview",
+    contents: `Read the content of this URL: ${url}. Extract food items and their calorie counts. Return a JSON array of objects with 'name' (string), 'calories' (number), and 'amount' (string, optional).`,
+    config: {
+      tools: [{ urlContext: {} }],
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.ARRAY,
+        items: {
+          type: Type.OBJECT,
+          properties: {
+            name: { type: Type.STRING },
+            calories: { type: Type.NUMBER },
+            amount: { type: Type.STRING },
+          },
+          required: ["name", "calories"],
+        },
+      },
+    },
+  });
+
+  try {
+    return JSON.parse(response.text || "[]");
+  } catch (e) {
+    console.error("Failed to parse food extraction from URL", e);
+    return [];
+  }
+}
+
 export async function getFoodSuggestions(remainingCalories: number, consumedFoods: FoodItem[]): Promise<string> {
   const consumedList = consumedFoods.map(f => f.name).join(", ");
   const prompt = `I have ${remainingCalories} calories remaining for today. So far I've eaten: ${consumedList || "nothing"}. 
