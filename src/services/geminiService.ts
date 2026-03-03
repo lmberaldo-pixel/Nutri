@@ -10,7 +10,7 @@ export interface FoodItem {
 
 export async function extractFoodFromText(text: string): Promise<FoodItem[]> {
   const response = await ai.models.generateContent({
-    model: "gemini-3-flash-preview",
+    model: "gemini-2.5-flash",
     contents: `Extract food items and their calorie counts from the following text. Return a JSON array of objects with 'name' (string), 'calories' (number), and 'amount' (string, optional). Text: ${text}`,
     config: {
       responseMimeType: "application/json",
@@ -45,7 +45,7 @@ export async function getFoodSuggestions(remainingCalories: number, consumedFood
   IMPORTANT: Response MUST be in Portuguese (pt-BR).`;
 
   const response = await ai.models.generateContent({
-    model: "gemini-3-flash-preview",
+    model: "gemini-2.5-flash",
     contents: prompt,
   });
 
@@ -54,7 +54,7 @@ export async function getFoodSuggestions(remainingCalories: number, consumedFood
 
 export async function searchFoodCalories(description: string): Promise<FoodItem[]> {
   const response = await ai.models.generateContent({
-    model: "gemini-3-flash-preview",
+    model: "gemini-2.5-flash",
     contents: `The user said: "${description}". Identify the food items and their estimated calorie counts. Use Google Search to find accurate information if needed. Return a JSON array of objects with 'name' (string), 'calories' (number), and 'amount' (string, optional).`,
     config: {
       tools: [{ googleSearch: {} }],
@@ -84,7 +84,7 @@ export async function searchFoodCalories(description: string): Promise<FoodItem[
 
 export async function transcribeAudio(base64Audio: string, mimeType: string = "audio/webm"): Promise<string> {
   const response = await ai.models.generateContent({
-    model: "gemini-3-flash-preview",
+    model: "gemini-2.5-flash",
     contents: [
       {
         inlineData: {
