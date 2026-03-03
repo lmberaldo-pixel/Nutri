@@ -42,6 +42,8 @@ export async function extractFoodFromText(text: string): Promise<FoodItem[]> {
     const errorMsg = e.message || "";
     if (errorMsg.includes("429")) {
       alert("Muitas requisições! A IA está sobrecarregada. Aguarde 10 segundos.");
+    } else if (errorMsg.includes("503") || errorMsg.includes("UNAVAILABLE")) {
+      alert("O servidor do Google está sobrecarregado no momento (Erro 503). Por favor, aguarde um minuto e tente novamente.");
     } else if (errorMsg.includes("API key expired") || errorMsg.includes("API_KEY_INVALID")) {
       alert("ERRO: Sua Chave de API expirou ou é inválida. Por favor, gere uma nova chave no Google AI Studio e atualize as configurações.");
     } else {
@@ -93,6 +95,8 @@ export async function searchFoodCalories(description: string): Promise<FoodItem[
     const errorMsg = e.message || "";
     if (errorMsg.includes("429")) {
       alert("Limite de uso da IA atingido. Aguarde um momento.");
+    } else if (errorMsg.includes("503") || errorMsg.includes("UNAVAILABLE")) {
+      alert("Servidor da IA temporariamente indisponível (Erro 503). Tente em instantes.");
     } else if (errorMsg.includes("API key expired") || errorMsg.includes("API_KEY_INVALID")) {
       alert("ERRO: Chave de API expirou ou é inválida.");
     }
