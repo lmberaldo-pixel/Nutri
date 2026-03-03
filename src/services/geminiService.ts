@@ -1,6 +1,6 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
+const getAI = () => new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
 
 export interface FoodItem {
   name: string;
@@ -9,60 +9,41 @@ export interface FoodItem {
 }
 
 export async function extractFoodFromText(text: string): Promise<FoodItem[]> {
-  const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash",
-    contents: `Extract food items and their calorie counts from the following text. Return a JSON array of objects with 'name' (string), 'calories' (number), and 'amount' (string, optional). Text: ${text}`,
-    config: {
-      responseMimeType: "application/json",
-      responseSchema: {
-        type: Type.ARRAY,
-        items: {
-          type: Type.OBJECT,
-          properties: {
-            name: { type: Type.STRING },
-            calories: { type: Type.NUMBER },
-            amount: { type: Type.STRING },
+  try {
+    const ai = getAI();
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: `Extract food items and their calorie counts from the following text. 
+      Return ONLY a JSON array of objects with 'name' (string), 'calories' (number), and 'amount' (string, optional). 
+      Text: ${text}`,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              name: { type: Type.STRING },
+              calories: { type: Type.NUMBER },
+              amount: { type: Type.STRING },
+            },
+            required: ["name", "calories"],
           },
-          required: ["name", "calories"],
         },
       },
-    },
-  });
+    });
 
-  try {
-    return JSON.parse(response.text || "[]");
-  } catch (e) {
+    const responseText = response.text || "[]";
+    const jsonMatch = responseText.match(/\[[\s\S]*\]/);
+    const jsonStr = jsonMatch ? jsonMatch[0] : responseText;
+    return JSON.parse(jsonStr);
+  } catch (e: any) {
     console.error("Failed to parse food extraction", e);
-    return [];
-  }
-}
-
-export async function extractFoodFromUrl(url: string): Promise<FoodItem[]> {
-  const response = await ai.models.generateContent({
-    model: "gemini-3-flash-preview",
-    contents: `Read the content of this URL: ${url}. Extract food items and their calorie counts. Return a JSON array of objects with 'name' (string), 'calories' (number), and 'amount' (string, optional).`,
-    config: {
-      tools: [{ urlContext: {} }],
-      responseMimeType: "application/json",
-      responseSchema: {
-        type: Type.ARRAY,
-        items: {
-          type: Type.OBJECT,
-          properties: {
-            name: { type: Type.STRING },
-            calories: { type: Type.NUMBER },
-            amount: { type: Type.STRING },
-          },
-          required: ["name", "calories"],
-        },
-      },
-    },
-  });
-
-  try {
-    return JSON.parse(response.text || "[]");
-  } catch (e) {
-    console.error("Failed to parse food extraction from URL", e);
+    if (e.message?.includes("429")) {
+      alert("Muitas requisições! A IA está sobrecarregada. Aguarde 10 segundos e tente novamente.");
+    } else {
+      alert("Erro ao processar texto. Verifique sua conexão ou tente um texto mais curto.");
+    }
     return [];
   }
 }
@@ -74,50 +55,63 @@ export async function getFoodSuggestions(remainingCalories: number, consumedFood
   Keep it concise and formatted in markdown.
   IMPORTANT: Response MUST be in Portuguese (pt-BR).`;
 
-  const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash",
-    contents: prompt,
-  });
-
-  return response.text || "Nenhuma sugestão disponível no momento.";
+  try {
+    const ai = getAI();
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: prompt,
+    });
+    return response.text || "Nenhuma sugestão disponível no momento.";
+  } catch (e: any) {
+    console.error("Suggestions error:", e);
+    return "Não foi possível carregar sugestões agora.";
+  }
 }
 
 export async function searchFoodCalories(description: string): Promise<FoodItem[]> {
-  const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash",
-    contents: `The user said: "${description}". Identify the food items and their estimated calorie counts. Use Google Search to find accurate information if needed. 
-    Return ONLY a JSON array of objects with 'name' (string), 'calories' (number), and 'amount' (string, optional). 
-    Example: [{"name": "Banana", "calories": 89, "amount": "1 medium"}]`,
-    config: {
-      tools: [{ googleSearch: {} }],
-    },
-  });
-
   try {
+    const ai = getAI();
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: `The user said: "${description}". Identify the food items and their estimated calorie counts. Use Google Search to find accurate information. 
+      Return ONLY a JSON array of objects with 'name' (string), 'calories' (number), and 'amount' (string, optional). 
+      Example: [{"name": "Banana", "calories": 89, "amount": "1 medium"}]`,
+      config: {
+        tools: [{ googleSearch: {} }],
+      },
+    });
+
     const text = response.text || "[]";
-    // Extract JSON from markdown code blocks if present
     const jsonMatch = text.match(/\[[\s\S]*\]/);
     const jsonStr = jsonMatch ? jsonMatch[0] : text;
     return JSON.parse(jsonStr);
-  } catch (e) {
+  } catch (e: any) {
     console.error("Failed to parse food search", e);
+    if (e.message?.includes("429")) {
+      alert("Limite de uso da IA atingido. Aguarde um momento e tente novamente.");
+    }
     return [];
   }
 }
 
 export async function transcribeAudio(base64Audio: string, mimeType: string = "audio/webm"): Promise<string> {
-  const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash",
-    contents: [
-      {
-        inlineData: {
-          mimeType: mimeType,
-          data: base64Audio,
+  try {
+    const ai = getAI();
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: [
+        {
+          inlineData: {
+            mimeType: mimeType,
+            data: base64Audio,
+          },
         },
-      },
-      { text: "Transcribe the audio accurately. If it's in Portuguese, transcribe in Portuguese. Only return the transcription text." },
-    ],
-  });
-
-  return response.text || "";
+        { text: "Transcribe the audio accurately. If it's in Portuguese, transcribe in Portuguese. Only return the transcription text." },
+      ],
+    });
+    return response.text || "";
+  } catch (e: any) {
+    console.error("Transcription error:", e);
+    return "";
+  }
 }

@@ -7,7 +7,6 @@ import {
   Target, 
   Utensils, 
   Flame, 
-  Link as LinkIcon, 
   Loader2,
   Search,
   RotateCcw
@@ -15,7 +14,7 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { extractFoodFromText, extractFoodFromUrl, searchFoodCalories, transcribeAudio, FoodItem } from './services/geminiService';
+import { extractFoodFromText, searchFoodCalories, transcribeAudio, FoodItem } from './services/geminiService';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -26,9 +25,9 @@ export default function App() {
   const [foods, setFoods] = useState<FoodItem[]>([]);
   const [lastAddedCount, setLastAddedCount] = useState<number>(0);
   const [exceededHistory, setExceededHistory] = useState<number[]>([]);
-  const [chatGptUrl, setChatGptUrl] = useState('');
   const [pastedText, setPastedText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isPasting, setIsPasting] = useState(false);
   const [manualFood, setManualFood] = useState({ name: '', calories: '' });
   const [isRecording, setIsRecording] = useState(false);
   const [voiceStatus, setVoiceStatus] = useState<string>('');
@@ -91,44 +90,30 @@ export default function App() {
       name: manualFood.name,
       calories: parseInt(manualFood.calories),
     };
-    setFoods([...foods, newFood]);
+    setFoods(prev => [...prev, newFood]);
     setLastAddedCount(1);
     setManualFood({ name: '', calories: '' });
-  };
-
-  const handleImportUrl = async () => {
-    if (!chatGptUrl) return;
-    
-    setIsLoading(true);
-    try {
-      const extracted = await extractFoodFromUrl(chatGptUrl);
-      if (extracted.length > 0) {
-        setFoods([...foods, ...extracted]);
-        setLastAddedCount(extracted.length);
-        setChatGptUrl('');
-      } else {
-        alert("Não foram encontrados alimentos no conteúdo do link. Verifique se o link é público e contém uma conversa do ChatGPT.");
-      }
-    } catch (error) {
-      console.error(error);
-      alert("Erro ao tentar processar o link. Tente copiar e colar o texto manualmente.");
-    } finally {
-      setIsLoading(false);
-    }
   };
 
   const handlePasteContent = async () => {
     if (!pastedText.trim()) return;
     setIsLoading(true);
+    setIsPasting(true);
     try {
       const extracted = await extractFoodFromText(pastedText);
-      setFoods([...foods, ...extracted]);
-      setLastAddedCount(extracted.length);
-      setPastedText('');
+      if (extracted.length > 0) {
+        setFoods(prev => [...prev, ...extracted]);
+        setLastAddedCount(extracted.length);
+        setPastedText('');
+      } else {
+        alert("Não foram encontrados alimentos no texto colado. Certifique-se de que o texto contém nomes de alimentos e calorias.");
+      }
     } catch (error) {
-      console.error(error);
+      console.error("Paste extraction error:", error);
+      alert("Erro ao processar o texto. Tente novamente.");
     } finally {
       setIsLoading(false);
+      setIsPasting(false);
     }
   };
 
@@ -231,9 +216,9 @@ export default function App() {
     <div className="min-h-screen bg-zinc-50 relative">
       {/* Background Image with Overlay */}
       <div 
-        className="fixed inset-0 z-0 opacity-60 pointer-events-none"
+        className="fixed inset-0 z-0 opacity-90 pointer-events-none brightness-110 contrast-105"
         style={{ 
-          backgroundImage: 'url("https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&q=80&w=1920")',
+          backgroundImage: 'url("https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&q=100&w=2400")',
           backgroundSize: 'cover',
           backgroundPosition: 'center'
         }}
@@ -248,7 +233,7 @@ export default function App() {
               <Utensils className="w-8 h-8 text-emerald-600" />
               NutriGPT
             </h1>
-            <p className="text-zinc-600">Seu contador de calorias inteligente</p>
+            <p className="text-black text-[1.2rem] font-medium">Seu contador de calorias inteligente</p>
           </div>
         </header>
 
@@ -329,10 +314,10 @@ export default function App() {
               </h2>
               <button 
                 onClick={clearHistory}
-                className="text-emerald-600 hover:text-red-500 transition-colors p-1"
+                className="text-red-600 hover:text-red-700 transition-colors p-1"
                 title="Limpar Histórico"
               >
-                <Trash2 className="w-4 h-4" />
+                <Trash2 className="w-5 h-5" />
               </button>
             </div>
             <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
@@ -364,7 +349,10 @@ export default function App() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Mic className="w-5 h-5 text-emerald-700" />
-                  <h2 className="font-semibold text-black">Adicionar por Voz</h2>
+                  <div className="flex flex-col">
+                    <h2 className="font-semibold text-black">Adicionar por Voz</h2>
+                    <span className="text-[10px] text-emerald-600 font-bold uppercase tracking-tight leading-none">(Quantidade e alimento)</span>
+                  </div>
                 </div>
                 {isRecording && (
                   <motion.div 
@@ -396,7 +384,7 @@ export default function App() {
                   )}
                 </button>
                 <div className="text-center space-y-1">
-                  <p className="text-sm text-emerald-800 max-w-xs">
+                  <p className="text-[0.9625rem] text-emerald-800 max-w-xs">
                     {isRecording 
                       ? "Clique para parar e processar" 
                       : "Clique no microfone e diga o que você comeu"}
@@ -410,75 +398,32 @@ export default function App() {
               </div>
             </section>
 
-            {/* Import Link Section */}
-            <section className="bg-emerald-50/80 backdrop-blur-sm p-6 rounded-3xl shadow-sm border border-emerald-100 space-y-4">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <LinkIcon className="w-5 h-5 text-emerald-700" />
-                  <h2 className="font-semibold text-black">Importar do ChatGPT</h2>
-                </div>
-                {chatGptUrl && (
-                  <button 
-                    onClick={() => setChatGptUrl('')}
-                    className="text-emerald-600 hover:text-red-500 transition-colors p-1"
-                    title="Limpar Link"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                )}
-              </div>
-              <div className="flex gap-2">
-                <div className="flex-1 relative">
-                  <input 
-                    type="text" 
-                    placeholder="Cole o link de compartilhamento..."
-                    value={chatGptUrl}
-                    onChange={(e) => setChatGptUrl(e.target.value)}
-                    className="w-full bg-white/50 border border-emerald-200 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all placeholder:text-emerald-500"
-                  />
-                  {chatGptUrl && (
-                    <button 
-                      onClick={() => setChatGptUrl('')}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-600 hover:text-emerald-800"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  )}
-                </div>
-                <button 
-                  onClick={handleImportUrl}
-                  disabled={isLoading || !chatGptUrl}
-                  className="bg-emerald-600 text-white px-4 py-2 rounded-xl font-medium hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm shadow-emerald-200"
-                >
-                  {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
-                  Importar
-                </button>
-              </div>
-            </section>
-
             {/* Paste Text Section */}
             <section className="bg-emerald-50/60 backdrop-blur-sm p-6 rounded-3xl shadow-sm border border-emerald-100 space-y-4">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
                   <Search className="w-5 h-5 text-emerald-700" />
-                  <h2 className="font-semibold text-black">Colar Texto</h2>
+                  <div className="flex flex-col">
+                    <h2 className="font-semibold text-black">Digitar/Colar</h2>
+                    <span className="text-[10px] text-emerald-600 font-bold uppercase tracking-tight leading-none">(Quantidade e alimento)</span>
+                  </div>
                 </div>
                 {pastedText && (
                   <button 
                     onClick={() => setPastedText('')}
-                    className="text-emerald-600 hover:text-red-500 transition-colors p-1"
+                    className="text-red-600 hover:text-red-700 transition-colors p-1"
                     title="Limpar Texto"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-5 h-5" />
                   </button>
                 )}
               </div>
               <div className="space-y-2">
                 <textarea 
-                  placeholder="Cole o texto da conversa aqui para extrair alimentos..."
+                  placeholder="Ex: 2 ovos cozidos e 1 fatia de pão integral..."
                   value={pastedText}
                   onChange={(e) => setPastedText(e.target.value)}
-                  className="w-full h-24 bg-white/50 border border-emerald-200 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all text-sm resize-none placeholder:text-emerald-500"
+                  className="w-full h-24 bg-white/50 border border-emerald-200 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all text-[0.9625rem] resize-none placeholder:text-emerald-500"
                 />
                 <div className="flex justify-end">
                   <button 
@@ -486,8 +431,8 @@ export default function App() {
                     disabled={isLoading || !pastedText.trim()}
                     className="bg-emerald-800 text-white px-4 py-2 rounded-xl font-medium hover:bg-emerald-900 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm"
                   >
-                    {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
-                    Processar Texto
+                    {isPasting && <Loader2 className="w-4 h-4 animate-spin" />}
+                    Processar Alimentos
                   </button>
                 </div>
               </div>
@@ -518,9 +463,9 @@ export default function App() {
                     <button 
                       type="button"
                       onClick={clearFoods}
-                      className="text-xs font-bold uppercase tracking-wider text-red-500 hover:text-red-600 transition-colors flex items-center gap-1 cursor-pointer"
+                      className="text-red-600 hover:text-red-700 transition-colors flex items-center gap-1 cursor-pointer p-1"
                     >
-                      <Trash2 className="w-3 h-3" />
+                      <Trash2 className="w-5 h-5" />
                     </button>
                   )}
                 </div>
@@ -555,9 +500,9 @@ export default function App() {
                           <td className="px-6 py-4 text-right">
                             <button 
                               onClick={() => removeFood(index)}
-                              className="text-zinc-300 hover:text-red-500 transition-colors p-1"
+                              className="text-red-500 hover:text-red-700 transition-colors p-1"
                             >
-                              <Trash2 className="w-4 h-4" />
+                              <Trash2 className="w-5 h-5" />
                             </button>
                           </td>
                         </motion.tr>
@@ -581,7 +526,7 @@ export default function App() {
                   placeholder="Nome do alimento..."
                   value={manualFood.name}
                   onChange={(e) => setManualFood({ ...manualFood, name: e.target.value })}
-                  className="flex-1 bg-white/80 border border-emerald-200 rounded-xl px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                  className="flex-1 bg-white/80 border border-emerald-200 rounded-xl px-3 py-1.5 text-[0.9625rem] focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
                 />
                 <input 
                   type="number" 
@@ -589,7 +534,7 @@ export default function App() {
                   placeholder="kcal"
                   value={manualFood.calories}
                   onChange={(e) => setManualFood({ ...manualFood, calories: e.target.value })}
-                  className="w-20 bg-white/80 border border-emerald-200 rounded-xl px-3 py-1.5 text-sm focus:outline-none font-mono focus:ring-2 focus:ring-emerald-500/20"
+                  className="w-20 bg-white/80 border border-emerald-200 rounded-xl px-3 py-1.5 text-[0.9625rem] focus:outline-none font-mono focus:ring-2 focus:ring-emerald-500/20"
                 />
                 <button 
                   type="submit"
@@ -642,9 +587,9 @@ function StatCard({ label, value, unit, icon, color }: {
         {icon}
       </div>
       <div>
-        <p className={cn("text-xs font-bold uppercase tracking-wider", current.label)}>{label}</p>
-        <p className={cn("text-2xl font-mono font-bold", current.text)}>
-          {value} <span className="text-sm font-normal opacity-60">{unit}</span>
+        <p className={cn("text-[0.825rem] font-bold uppercase tracking-wider", current.label)}>{label}</p>
+        <p className={cn("text-[1.65rem] font-mono font-bold", current.text)}>
+          {value} <span className="text-[0.9625rem] font-normal opacity-60">{unit}</span>
         </p>
       </div>
     </div>
