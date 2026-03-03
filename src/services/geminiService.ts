@@ -55,27 +55,20 @@ export async function getFoodSuggestions(remainingCalories: number, consumedFood
 export async function searchFoodCalories(description: string): Promise<FoodItem[]> {
   const response = await ai.models.generateContent({
     model: "gemini-2.5-flash",
-    contents: `The user said: "${description}". Identify the food items and their estimated calorie counts. Use Google Search to find accurate information if needed. Return a JSON array of objects with 'name' (string), 'calories' (number), and 'amount' (string, optional).`,
+    contents: `The user said: "${description}". Identify the food items and their estimated calorie counts. Use Google Search to find accurate information if needed. 
+    Return ONLY a JSON array of objects with 'name' (string), 'calories' (number), and 'amount' (string, optional). 
+    Example: [{"name": "Banana", "calories": 89, "amount": "1 medium"}]`,
     config: {
       tools: [{ googleSearch: {} }],
-      responseMimeType: "application/json",
-      responseSchema: {
-        type: Type.ARRAY,
-        items: {
-          type: Type.OBJECT,
-          properties: {
-            name: { type: Type.STRING },
-            calories: { type: Type.NUMBER },
-            amount: { type: Type.STRING },
-          },
-          required: ["name", "calories"],
-        },
-      },
     },
   });
 
   try {
-    return JSON.parse(response.text || "[]");
+    const text = response.text || "[]";
+    // Extract JSON from markdown code blocks if present
+    const jsonMatch = text.match(/\[[\s\S]*\]/);
+    const jsonStr = jsonMatch ? jsonMatch[0] : text;
+    return JSON.parse(jsonStr);
   } catch (e) {
     console.error("Failed to parse food search", e);
     return [];
