@@ -12,7 +12,7 @@ export async function extractFoodFromText(text: string): Promise<FoodItem[]> {
   try {
     const ai = getAI();
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-2.5-flash",
       contents: `Extract food items and their calorie counts from the following text. 
       Return ONLY a JSON array of objects with 'name' (string), 'calories' (number), and 'amount' (string, optional). 
       Text: ${text}`,
@@ -63,7 +63,7 @@ export async function getFoodSuggestions(remainingCalories: number, consumedFood
   try {
     const ai = getAI();
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-2.5-flash",
       contents: prompt,
     });
     return response.text || "Nenhuma sugestão disponível no momento.";
@@ -77,7 +77,7 @@ export async function searchFoodCalories(description: string): Promise<FoodItem[
   try {
     const ai = getAI();
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-2.5-flash",
       contents: `The user said: "${description}". Identify the food items and their estimated calorie counts. Use Google Search to find accurate information. 
       Return ONLY a JSON array of objects with 'name' (string), 'calories' (number), and 'amount' (string, optional). 
       Example: [{"name": "Banana", "calories": 89, "amount": "1 medium"}]`,
@@ -108,7 +108,7 @@ export async function transcribeAudio(base64Audio: string, mimeType: string = "a
   try {
     const ai = getAI();
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-2.5-flash",
       contents: [
         {
           inlineData: {
