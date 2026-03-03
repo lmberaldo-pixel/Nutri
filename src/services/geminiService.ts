@@ -13,9 +13,9 @@ export async function extractFoodFromText(text: string): Promise<FoodItem[]> {
     const ai = getAI();
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
-      contents: `Extract food items and their calorie counts from the following text. 
-      Return ONLY a JSON array of objects with 'name' (string), 'calories' (number), and 'amount' (string, optional). 
-      Text: ${text}`,
+      contents: `Analise o seguinte texto e identifique todos os alimentos. Para cada item, forneça a contagem estimada de calorias com base na quantidade mencionada (ex: "20g", "uma colher"). Se a quantidade não for especificada, assuma uma porção padrão.
+      Retorne APENAS um array JSON de objetos com 'name' (string), 'calories' (number) e 'amount' (string, opcional). 
+      Texto: ${text}`,
       config: {
         responseMimeType: "application/json",
         responseSchema: {
@@ -78,9 +78,9 @@ export async function searchFoodCalories(description: string): Promise<FoodItem[
     const ai = getAI();
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
-      contents: `The user said: "${description}". Identify the food items and their estimated calorie counts. Use Google Search to find accurate information. 
-      Return ONLY a JSON array of objects with 'name' (string), 'calories' (number), and 'amount' (string, optional). 
-      Example: [{"name": "Banana", "calories": 89, "amount": "1 medium"}]`,
+      contents: `O usuário disse: "${description}". Identifique os alimentos e suas contagens calóricas estimadas. Use o Google Search para encontrar informações precisas para as quantidades específicas mencionadas (ex: "20g", "uma colher", "um pote"). 
+      Retorne APENAS um array JSON de objetos com 'name' (string), 'calories' (number) e 'amount' (string, opcional). 
+      Exemplo: [{"name": "Mel", "calories": 60, "amount": "20g"}]`,
       config: {
         tools: [{ googleSearch: {} }],
       },

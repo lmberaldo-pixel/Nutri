@@ -9,7 +9,8 @@ import {
   Flame, 
   Loader2,
   Search,
-  RotateCcw
+  RotateCcw,
+  Clipboard
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { clsx, type ClassValue } from 'clsx';
@@ -224,7 +225,7 @@ export default function App() {
         }}
       />
       
-      <div className="relative z-10 p-4 md:p-8">
+      <div className="relative z-20 p-4 md:p-8">
         <div className="max-w-4xl mx-auto space-y-8">
         {/* Header */}
         <header className="flex items-center justify-between">
@@ -408,28 +409,46 @@ export default function App() {
                     <span className="text-[10px] text-emerald-600 font-bold uppercase tracking-tight leading-none">(Quantidade e alimento)</span>
                   </div>
                 </div>
-                {pastedText && (
-                  <button 
-                    onClick={() => setPastedText('')}
-                    className="text-red-600 hover:text-red-700 transition-colors p-1"
-                    title="Limpar Texto"
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={async () => {
+                      try {
+                        const text = await navigator.clipboard.readText();
+                        setPastedText(text);
+                      } catch (err) {
+                        console.error('Failed to read clipboard', err);
+                        // Fallback: alert user or just ignore if permission denied
+                      }
+                    }}
+                    className="text-emerald-700 hover:bg-emerald-100 p-2 rounded-lg transition-colors flex items-center gap-1 text-xs font-bold uppercase"
+                    title="Colar da Área de Transferência"
                   >
-                    <Trash2 className="w-5 h-5" />
+                    <Clipboard className="w-4 h-4" />
+                    <span className="hidden sm:inline">Colar</span>
                   </button>
-                )}
+                  {pastedText && (
+                    <button 
+                      onClick={() => setPastedText('')}
+                      className="text-red-600 hover:bg-red-50 p-2 rounded-lg transition-colors"
+                      title="Limpar Texto"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
+                  )}
+                </div>
               </div>
               <div className="space-y-2">
                 <textarea 
                   placeholder="Ex: 2 ovos cozidos e 1 fatia de pão integral..."
                   value={pastedText}
                   onChange={(e) => setPastedText(e.target.value)}
-                  className="w-full h-24 bg-white/50 border border-emerald-200 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all text-[0.9625rem] resize-none placeholder:text-emerald-500"
+                  className="w-full h-32 bg-white/50 border border-emerald-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all text-base resize-none placeholder:text-emerald-500"
                 />
                 <div className="flex justify-end">
                   <button 
                     onClick={handlePasteContent}
                     disabled={isLoading || !pastedText.trim()}
-                    className="bg-emerald-800 text-white px-4 py-2 rounded-xl font-medium hover:bg-emerald-900 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm"
+                    className="bg-emerald-800 text-white px-6 py-3 rounded-xl font-semibold hover:bg-emerald-900 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm active:scale-95 transition-transform"
                   >
                     {isPasting && <Loader2 className="w-4 h-4 animate-spin" />}
                     Processar Alimentos
