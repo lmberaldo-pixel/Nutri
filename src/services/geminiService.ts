@@ -12,7 +12,7 @@ export async function extractFoodFromText(text: string): Promise<FoodItem[]> {
   try {
     const ai = getAI();
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: "gemini-3.1-flash-lite-preview",
       contents: `Analise o seguinte texto e identifique todos os alimentos. Para cada item, forneça a contagem estimada de calorias com base na quantidade mencionada (ex: "20g", "uma colher"). Se a quantidade não for especificada, assuma uma porção padrão.
       Retorne APENAS um array JSON de objetos com 'name' (string), 'calories' (number) e 'amount' (string, opcional). 
       Texto: ${text}`,
@@ -63,7 +63,7 @@ export async function getFoodSuggestions(remainingCalories: number, consumedFood
   try {
     const ai = getAI();
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: "gemini-3.1-flash-lite-preview",
       contents: prompt,
     });
     return response.text || "Nenhuma sugestão disponível no momento.";
@@ -77,7 +77,7 @@ export async function searchFoodCalories(description: string): Promise<FoodItem[
   try {
     const ai = getAI();
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: "gemini-3.1-flash-lite-preview",
       contents: `O usuário disse: "${description}". Identifique os alimentos e suas contagens calóricas estimadas. Use o Google Search para encontrar informações precisas para as quantidades específicas mencionadas (ex: "20g", "uma colher", "um pote"). 
       Retorne APENAS um array JSON de objetos com 'name' (string), 'calories' (number) e 'amount' (string, opcional). 
       Exemplo: [{"name": "Mel", "calories": 60, "amount": "20g"}]`,
@@ -108,7 +108,7 @@ export async function transcribeAudio(base64Audio: string, mimeType: string = "a
   try {
     const ai = getAI();
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: "gemini-3.1-flash-lite-preview",
       contents: [
         {
           inlineData: {
