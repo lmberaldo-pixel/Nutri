@@ -120,18 +120,6 @@ export default function App() {
     }
   };
 
-  const loadExampleData = () => {
-    const examples: FoodItem[] = [
-      { name: "Ovo Cozido", calories: 70, amount: "1 unidade" },
-      { name: "Pão Integral", calories: 70, amount: "1 fatia" },
-      { name: "Banana", calories: 90, amount: "1 média" },
-      { name: "Frango Grelhado", calories: 160, amount: "100g" },
-      { name: "Arroz Branco", calories: 130, amount: "100g" }
-    ];
-    setFoods(examples);
-    setLastAddedCount(examples.length);
-  };
-
   const clearAllFoods = () => {
     if (confirm("Deseja realmente limpar todos os alimentos de hoje?")) {
       setFoods([]);
@@ -258,12 +246,6 @@ export default function App() {
             <p className="text-black text-[1.2rem] font-medium">Seu contador de calorias inteligente</p>
           </div>
           <div className="flex gap-2">
-            <button 
-              onClick={loadExampleData}
-              className="text-[10px] font-bold uppercase tracking-wider bg-white/80 border border-emerald-200 text-emerald-700 px-3 py-1.5 rounded-xl hover:bg-emerald-50 transition-all"
-            >
-              Carregar Exemplos
-            </button>
             <button 
               onClick={clearAllFoods}
               className="text-[10px] font-bold uppercase tracking-wider bg-white/80 border border-red-200 text-red-700 px-3 py-1.5 rounded-xl hover:bg-red-50 transition-all"
