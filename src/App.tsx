@@ -1,7 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
-  Mic,
-  MicOff,
   Plus, 
   Trash2, 
   Target, 
@@ -15,7 +13,7 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { extractFoodFromText, searchFoodCalories, transcribeAudio, FoodItem } from './services/geminiService';
+import { extractFoodFromText, searchFoodCalories, FoodItem } from './services/geminiService';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -32,10 +30,6 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [isPasting, setIsPasting] = useState(false);
   const [manualFood, setManualFood] = useState({ name: '', calories: '' });
-  const [isRecording, setIsRecording] = useState(false);
-  const [voiceStatus, setVoiceStatus] = useState<string>('');
-  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
-  const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
 
   const totalConsumed = useMemo(() => foods.reduce((sum, f) => sum + f.calories, 0), [foods]);
   const isExceeded = totalConsumed > goal;
@@ -132,77 +126,6 @@ export default function App() {
     setLastAddedCount(0);
   };
 
-  const startRecording = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      
-      // Find supported mime type
-      const mimeType = MediaRecorder.isTypeSupported('audio/webm') 
-        ? 'audio/webm' 
-        : MediaRecorder.isTypeSupported('audio/ogg') 
-          ? 'audio/ogg' 
-          : 'audio/mp4';
-
-      const recorder = new MediaRecorder(stream, { mimeType });
-      const chunks: Blob[] = [];
-
-      recorder.ondataavailable = (e) => {
-        if (e.data.size > 0) chunks.push(e.data);
-      };
-
-      recorder.onstop = async () => {
-        const audioBlob = new Blob(chunks, { type: mimeType });
-        const reader = new FileReader();
-        reader.readAsDataURL(audioBlob);
-        reader.onloadend = async () => {
-          const base64Audio = (reader.result as string).split(',')[1];
-          setIsLoading(true);
-          setVoiceStatus('Transcrevendo áudio...');
-          try {
-            const transcription = await transcribeAudio(base64Audio, mimeType);
-            if (transcription) {
-              setVoiceStatus(`Ouvido: "${transcription}". Buscando calorias...`);
-              const extracted = await searchFoodCalories(transcription);
-              if (extracted.length > 0) {
-                setFoods(prev => [...prev, ...extracted]);
-                setLastAddedCount(extracted.length);
-                setVoiceStatus('');
-              } else {
-                setVoiceStatus('Nenhum alimento identificado no áudio.');
-                setTimeout(() => setVoiceStatus(''), 3000);
-              }
-            } else {
-              setVoiceStatus('Não foi possível entender o áudio.');
-              setTimeout(() => setVoiceStatus(''), 3000);
-            }
-          } catch (error) {
-            console.error("Voice processing error:", error);
-            setVoiceStatus('Erro ao processar voz.');
-            setTimeout(() => setVoiceStatus(''), 3000);
-          } finally {
-            setIsLoading(false);
-          }
-        };
-        stream.getTracks().forEach(track => track.stop());
-      };
-
-      recorder.start();
-      setMediaRecorder(recorder);
-      setIsRecording(true);
-      setVoiceStatus('Gravando...');
-    } catch (error) {
-      console.error("Error accessing microphone:", error);
-      alert("Não foi possível acessar o microfone. Verifique as permissões do navegador.");
-    }
-  };
-
-  const stopRecording = () => {
-    if (mediaRecorder && isRecording) {
-      mediaRecorder.stop();
-      setIsRecording(false);
-    }
-  };
-
   const clearFoods = () => {
     setFoods([]);
     setLastAddedCount(0);
@@ -243,15 +166,7 @@ export default function App() {
               <Utensils className="w-8 h-8 text-emerald-600" />
               NutriGPT
             </h1>
-            <p className="text-orange-500 text-[1.2rem] font-medium">Seu contador de calorias inteligente</p>
-          </div>
-          <div className="flex gap-2">
-            <button 
-              onClick={clearAllFoods}
-              className="text-[10px] font-bold uppercase tracking-wider bg-white/80 border border-red-200 text-red-700 px-3 py-1.5 rounded-xl hover:bg-red-50 transition-all"
-            >
-              Limpar Tudo
-            </button>
+            <p className="text-white text-[1.2rem] font-medium">Seu contador de calorias inteligente</p>
           </div>
         </header>
 
@@ -362,60 +277,6 @@ export default function App() {
 
         {/* Main Content Grid */}
         <div className="max-w-3xl mx-auto space-y-6">
-          {/* Voice Capture Section */}
-            <section className="bg-emerald-50/80 backdrop-blur-sm p-6 rounded-3xl shadow-sm border border-emerald-100 space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Mic className="w-5 h-5 text-emerald-700" />
-                  <div className="flex flex-col">
-                    <h2 className="font-semibold text-black">Adicionar por Voz</h2>
-                    <span className="text-[10px] text-emerald-600 font-bold uppercase tracking-tight leading-none">(Quantidade e alimento)</span>
-                  </div>
-                </div>
-                {isRecording && (
-                  <motion.div 
-                    animate={{ opacity: [0, 1, 0] }}
-                    transition={{ repeat: Infinity, duration: 1.5 }}
-                    className="flex items-center gap-2 text-emerald-700 text-xs font-bold uppercase"
-                  >
-                    <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                    Gravando...
-                  </motion.div>
-                )}
-              </div>
-              
-              <div className="flex flex-col items-center justify-center py-4 space-y-4">
-                <button 
-                  onClick={isRecording ? stopRecording : startRecording}
-                  disabled={isLoading && !isRecording}
-                  className={cn(
-                    "w-20 h-20 rounded-full flex items-center justify-center transition-all shadow-lg",
-                    isRecording 
-                      ? "bg-emerald-700 hover:bg-emerald-800 scale-110" 
-                      : "bg-emerald-800 hover:bg-emerald-900"
-                  )}
-                >
-                  {isRecording ? (
-                    <MicOff className="w-8 h-8 text-white" />
-                  ) : (
-                    <Mic className="w-8 h-8 text-white" />
-                  )}
-                </button>
-                <div className="text-center space-y-1">
-                  <p className="text-[0.9625rem] text-emerald-800 max-w-xs">
-                    {isRecording 
-                      ? "Clique para parar e processar" 
-                      : "Clique no microfone e diga o que você comeu"}
-                  </p>
-                  {voiceStatus && (
-                    <p className="text-xs font-medium text-emerald-700 animate-pulse">
-                      {voiceStatus}
-                    </p>
-                  )}
-                </div>
-              </div>
-            </section>
-
             {/* Paste Text Section */}
             <section className="bg-emerald-50/60 backdrop-blur-sm p-6 rounded-3xl shadow-sm border border-emerald-100 space-y-4">
               <div className="flex items-center justify-between mb-2">

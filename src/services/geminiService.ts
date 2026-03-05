@@ -104,24 +104,3 @@ export async function searchFoodCalories(description: string): Promise<FoodItem[
   }
 }
 
-export async function transcribeAudio(base64Audio: string, mimeType: string = "audio/webm"): Promise<string> {
-  try {
-    const ai = getAI();
-    const response = await ai.models.generateContent({
-      model: "gemini-3.1-flash-lite-preview",
-      contents: [
-        {
-          inlineData: {
-            mimeType: mimeType,
-            data: base64Audio,
-          },
-        },
-        { text: "Transcribe the audio accurately. If it's in Portuguese, transcribe in Portuguese. Only return the transcription text." },
-      ],
-    });
-    return response.text || "";
-  } catch (e: any) {
-    console.error("Transcription error:", e);
-    return "";
-  }
-}
