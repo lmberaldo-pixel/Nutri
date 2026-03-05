@@ -162,11 +162,11 @@ export default function App() {
         {/* Header */}
         <header className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-orange-600 flex items-center gap-2">
+            <h1 className="text-3xl font-bold tracking-tight text-red-600 flex items-center gap-2">
               <Utensils className="w-8 h-8 text-emerald-600" />
               NutriGPT
             </h1>
-            <p className="text-white text-[1.2rem] font-medium">Seu contador de calorias inteligente</p>
+            <p className="text-red-500 text-[1.2rem] font-medium">Seu contador de calorias inteligente</p>
           </div>
         </header>
 
