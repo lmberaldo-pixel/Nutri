@@ -19,15 +19,27 @@ async function startServer() {
 
   app.use(express.json());
 
+  // Health check
+  app.get("/api/health", (req, res) => {
+    res.json({ status: "ok", hasApiKey: !!process.env.GEMINI_API_KEY });
+  });
+
+  // Debug middleware
+  app.use((req, res, next) => {
+    console.log(`${req.method} ${req.url}`);
+    next();
+  });
+
   // API routes FIRST
   app.post("/api/extract-food", async (req, res) => {
     const { text } = req.body;
+    console.log("Extracting food from:", text);
     if (!text) return res.status(400).json({ error: "Text is required" });
 
     try {
       const ai = getAI();
       const response = await ai.models.generateContent({
-        model: "gemini-3.1-flash-lite-preview",
+        model: "gemini-3-flash-preview",
         contents: `Analise o seguinte texto e identifique todos os alimentos. Para cada item, forneça a contagem estimada de calorias com base na quantidade mencionada (ex: "20g", "uma colher"). Se a quantidade não for especificada, assuma uma porção padrão.
         Retorne APENAS um array JSON de objetos com 'name' (string), 'calories' (number) e 'amount' (string, opcional). 
         Texto: ${text}`,
@@ -49,23 +61,25 @@ async function startServer() {
       });
 
       const responseText = response.text || "[]";
+      console.log("Gemini response:", responseText);
       const jsonMatch = responseText.match(/\[[\s\S]*\]/);
       const jsonStr = jsonMatch ? jsonMatch[0] : responseText;
       res.json(JSON.parse(jsonStr));
     } catch (error: any) {
-      console.error("Extraction error:", error);
+      console.error("Extraction error in server:", error);
       res.status(500).json({ error: error.message || "Failed to extract food" });
     }
   });
 
   app.post("/api/search-food", async (req, res) => {
     const { description } = req.body;
+    console.log("Searching food for:", description);
     if (!description) return res.status(400).json({ error: "Description is required" });
 
     try {
       const ai = getAI();
       const response = await ai.models.generateContent({
-        model: "gemini-3.1-flash-lite-preview",
+        model: "gemini-3-flash-preview",
         contents: `O usuário disse: "${description}". Identifique os alimentos e suas contagens calóricas estimadas. Use o Google Search para encontrar informações precisas para as quantidades específicas mencionadas (ex: "20g", "uma colher", "um pote"). 
         Retorne APENAS um array JSON de objetos com 'name' (string), 'calories' (number) e 'amount' (string, opcional). 
         Exemplo: [{"name": "Mel", "calories": 60, "amount": "20g"}]`,
@@ -75,11 +89,12 @@ async function startServer() {
       });
 
       const text = response.text || "[]";
+      console.log("Gemini search response:", text);
       const jsonMatch = text.match(/\[[\s\S]*\]/);
       const jsonStr = jsonMatch ? jsonMatch[0] : text;
       res.json(JSON.parse(jsonStr));
     } catch (error: any) {
-      console.error("Search error:", error);
+      console.error("Search error in server:", error);
       res.status(500).json({ error: error.message || "Failed to search food" });
     }
   });
