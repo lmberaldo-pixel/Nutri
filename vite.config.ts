@@ -5,6 +5,8 @@ import {defineConfig, loadEnv} from 'vite';
 
 export default defineConfig(({ command, mode }) => {
   const env = loadEnv(mode, '.', '');
+  console.log("[Vite Build] GEMINI_API_KEY present:", !!env.GEMINI_API_KEY);
+  
   return {
     base: command === 'build' ? './' : '/',
     plugins: [react(), tailwindcss()],
