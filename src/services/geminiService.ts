@@ -10,22 +10,29 @@ const getAI = () => {
   // Support both standard Vite env vars and the process.env defined in vite.config.ts
   const apiKey = import.meta.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
   
-  if (!apiKey || apiKey === "undefined" || apiKey === "MY_GEMINI_API_KEY") {
-    throw new Error(
-      "API Key não encontrada. Certifique-se de configurar GEMINI_API_KEY ou VITE_GEMINI_API_KEY " +
-      "nos Secrets do GitHub ou Environment Variables do Vercel."
-    );
+  // Debug info (safe to log existence and length, but not the key itself)
+  console.log("[GeminiService] API Key check:", { 
+    hasViteKey: !!import.meta.env.VITE_GEMINI_API_KEY, 
+    hasProcessKey: !!process.env.GEMINI_API_KEY,
+    keyLength: apiKey?.length || 0,
+    envMode: import.meta.env.MODE
+  });
+
+  if (!apiKey || apiKey === "undefined" || apiKey === "MY_GEMINI_API_KEY" || apiKey === "" || apiKey === "null") {
+    const errorMsg = "API Key não encontrada. Se você estiver no AI Studio, certifique-se de que a chave está configurada nos 'Secrets'. Se estiver no GitHub/Vercel, configure GEMINI_API_KEY ou VITE_GEMINI_API_KEY.";
+    console.error("[GeminiService] " + errorMsg);
+    throw new Error(errorMsg);
   }
   return new GoogleGenAI({ apiKey });
 };
 
 export async function extractFoodFromText(text: string): Promise<FoodItem[]> {
   try {
-    console.log("Extracting food from text using Gemini directly in frontend:", text);
+    console.log("[GeminiService] Extracting food from text:", text);
     const ai = getAI();
     
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-2.0-flash", // Using the model from original server.ts for stability
       contents: `Analise o seguinte texto e identifique todos os alimentos. Para cada item, forneça a contagem estimada de calorias com base na quantidade mencionada (ex: "20g", "uma colher"). Se a quantidade não for especificada, assuma uma porção padrão.
       Retorne APENAS um array JSON de objetos com 'name' (string), 'calories' (number) e 'amount' (string, opcional). 
       Texto: ${text}`,
@@ -47,6 +54,9 @@ export async function extractFoodFromText(text: string): Promise<FoodItem[]> {
     });
 
     const responseText = response.text || "[]";
+    console.log("[GeminiService] Raw response:", responseText);
+    
+    // Robust JSON extraction
     let cleanJson = responseText.trim();
     if (cleanJson.includes("```json")) {
       cleanJson = cleanJson.split("```json")[1].split("```")[0].trim();
@@ -55,10 +65,10 @@ export async function extractFoodFromText(text: string): Promise<FoodItem[]> {
     }
 
     const data = JSON.parse(cleanJson);
-    console.log("Extraction success:", data);
+    console.log("[GeminiService] Extraction success:", data);
     return data;
   } catch (e: any) {
-    console.error("Extraction error in frontend:", e);
+    console.error("[GeminiService] Extraction error:", e);
     alert(`Erro ao processar texto: ${e.message}`);
     return [];
   }
@@ -66,11 +76,11 @@ export async function extractFoodFromText(text: string): Promise<FoodItem[]> {
 
 export async function searchFoodCalories(description: string): Promise<FoodItem[]> {
   try {
-    console.log("Searching food calories using Gemini directly in frontend:", description);
+    console.log("[GeminiService] Searching food calories:", description);
     const ai = getAI();
     
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-2.0-flash", // Using the model from original server.ts for stability
       contents: `O usuário disse: "${description}". Identifique os alimentos e suas contagens calóricas estimadas. Use o Google Search para encontrar informações precisas para as quantidades específicas mencionadas (ex: "20g", "uma colher", "um pote"). 
       Retorne APENAS um array JSON de objetos com 'name' (string), 'calories' (number) e 'amount' (string, opcional). 
       Exemplo: [{"name": "Mel", "calories": 60, "amount": "20g"}]`,
@@ -93,6 +103,9 @@ export async function searchFoodCalories(description: string): Promise<FoodItem[
     });
 
     const responseText = response.text || "[]";
+    console.log("[GeminiService] Raw response search:", responseText);
+    
+    // Robust JSON extraction
     let cleanJson = responseText.trim();
     if (cleanJson.includes("```json")) {
       cleanJson = cleanJson.split("```json")[1].split("```")[0].trim();
@@ -101,10 +114,10 @@ export async function searchFoodCalories(description: string): Promise<FoodItem[
     }
 
     const data = JSON.parse(cleanJson);
-    console.log("Search success:", data);
+    console.log("[GeminiService] Search success:", data);
     return data;
   } catch (e: any) {
-    console.error("Search error in frontend:", e);
+    console.error("[GeminiService] Search error:", e);
     alert(`Erro ao buscar calorias: ${e.message}`);
     return [];
   }
