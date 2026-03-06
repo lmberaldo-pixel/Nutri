@@ -93,7 +93,6 @@ export default function App() {
   };
 
   const handlePasteContent = async () => {
-    console.log("handlePasteContent triggered with text:", pastedText);
     if (!pastedText.trim()) return;
     setIsLoading(true);
     setIsPasting(true);
