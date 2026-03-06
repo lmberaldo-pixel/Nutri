@@ -8,9 +8,10 @@ export interface FoodItem {
 
 const getAI = () => {
   const apiKey = process.env.GEMINI_API_KEY;
-  console.log("[Frontend] API Key present:", !!apiKey);
-  if (!apiKey) {
-    throw new Error("GEMINI_API_KEY não encontrada no ambiente. Verifique as configurações do projeto.");
+  console.log("[Frontend] API Key check:", apiKey ? "Present" : "Missing");
+  
+  if (!apiKey || apiKey === "undefined" || apiKey === "null" || apiKey.length < 10) {
+    throw new Error("Chave de API do Gemini não encontrada ou inválida. Certifique-se de que o ambiente está configurado.");
   }
   return new GoogleGenAI({ apiKey });
 };
