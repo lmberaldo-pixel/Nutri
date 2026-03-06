@@ -7,9 +7,14 @@ export interface FoodItem {
 }
 
 const getAI = () => {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    throw new Error("GEMINI_API_KEY is not defined. Please check your environment variables.");
+  // Support both standard Vite env vars and the process.env defined in vite.config.ts
+  const apiKey = import.meta.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
+  
+  if (!apiKey || apiKey === "undefined" || apiKey === "MY_GEMINI_API_KEY") {
+    throw new Error(
+      "API Key não encontrada. Certifique-se de configurar GEMINI_API_KEY ou VITE_GEMINI_API_KEY " +
+      "nos Secrets do GitHub ou Environment Variables do Vercel."
+    );
   }
   return new GoogleGenAI({ apiKey });
 };
